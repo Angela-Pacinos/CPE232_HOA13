@@ -8,7 +8,7 @@
   lineinfile:
     dest: /etc/chrony/chrony.conf
     regexp: "server NTP_SERVER iburst"
-    line: "server 192.168.56.114 iburst"
+    line: "server 192.168.56.117 iburst"
 
 - name: Chrony Daemon
   lineinfile:
@@ -74,6 +74,7 @@
 
 - name: Add RabbitMQ user
   command: rabbitmqctl add_user openstack pacinos_tip
+  ignore_errors: yes
 
 - name: Permit configuration
   command: rabbitmqctl set_permissions openstack ".*" ".*" ".*"

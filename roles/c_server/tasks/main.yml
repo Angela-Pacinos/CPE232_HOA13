@@ -6,22 +6,21 @@
 
 - name: Edit chrony.conf file
   lineinfile:
-    path: /etc/chrony/chrony.conf
+    dest: /etc/chrony.conf
     regexp: "server NTP_SERVER iburst"
-    line: "server 192.168.56.114 iburst"
+    line: "server 192.168.56.115 iburst"
 
 - name: Chrony Daemon
   lineinfile:
-    path: /ect/chrony/chrony.conf
+    dest: /etc/chrony.conf
     line: "allow 10.0.0.0/24"
     backup: yes
 
-- name: NTP Restarting / Enabling
-  tags: serviceon
+- name: NTP Starting / Enabling
   service:
-    name: ntp
-    state: restarted
-    enabled: true
+    name: chrony
+    state: started
+    enabled: yes
 
 # OpenStack packages
 - name: Install subscription manager
