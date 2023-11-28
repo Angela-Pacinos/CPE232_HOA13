@@ -1,0 +1,126 @@
+# NTP
+- name: Install NTP package
+  apt:
+    name: chrony
+    state: latest
+
+- name: Edit chrony.conf file
+  lineinfile:
+    dest: /etc/chrony/chrony.conf
+    regexp: "server NTP_SERVER iburst"
+    line: "server 192.168.56.114 iburst"
+
+- name: Chrony Daemon
+  lineinfile:
+    dest: /etc/chrony/chrony.conf
+    line: "allow 10.0.0.0/24"
+    backup: yes
+
+- name: NTP Restarting / Enabling
+  service:
+    name: chrony
+    state: restarted
+    enabled: true
+
+# OpenStack packages
+- name: Install Nova-compute
+  apt:
+    name: nova-compute
+    state: latest
+
+- name: Install OpenStack Client
+  apt:
+    name: python3-openstackclient
+    state: latest
+
+# SQL Database
+- name: Install SQL packages
+  apt:
+    name:
+      - mariadb-server
+      - python3-pymysql
+
+- name: Create file (SQL)
+  file:
+    dest: /etc/mysql/mariadb.conf.d/99-openstack.cnf
+    state: touch
+
+- name: Edit file (SQL)
+  lineinfile:
+    path: /etc/mysql/mariadb.conf.d/99-openstack.cnf
+    state: present
+    line: "{{ item }}"
+  with_items:
+  - [mysqld]
+  - bind-address = 10.0.0.11
+  - |
+  - default-storage-engine = innodb
+  - innodb_file_per_table = on
+  - max_connections = 4096
+  - collation-server = utf8_general_ci
+  - character-set-server = utf8
+
+- name: MySQL Restarting
+  service:
+    name: mysql
+    state: restarted
+    enabled: true
+
+# Message Queue
+- name: Install Message Queue package
+  apt:
+    name: rabbitmq-server
+    state: latest
+
+- name: Add RabbitMQ user
+  command: rabbitmqctl add_user openstack pacinos_tip
+
+- name: Permit configuration
+  command: rabbitmqctl set_permissions openstack ".*" ".*" ".*"
+
+# memcached
+- name: Install memcached packages
+  apt:
+    name:
+      - memcached
+      - python3-memcache
+    state: latest
+
+- name: Edit file (memcached)
+  lineinfile:
+    path: /etc/memcached.conf
+    regexp: "-1 127.0.0.1"
+    line: "-1 10.0.0.11"
+
+- name: memcached Restarting
+  service:
+    name: memcached
+    state: restarted
+    enabled: true
+
+# Etcd
+- name: Install Etcd package
+  apt:
+    name: etcd
+    state: latest
+
+- name: Edit file (Etcd)
+  lineinfile:
+    path: /etc/default/etcd
+    state: present
+    line: "{{ item }}"
+  loop:
+  - {regexp: "ETCD_INITIAL_CLUSTER",
+     line: 'ETCD_INITIAL_CLUSTER="controller=http://10.0.0.11:2380"'}
+  - {regexp: "ETCD_INITIAL_ADVERTISE_PEER_URLS",
+     line: 'ETCD_INITIAL_ADVERTISE_PEER_URLS="http://10.0.0.11:2380"'}
+  - {regexp: "ETCD_ADVERTISE_CLIENT_URLS",
+     line: 'ETCD_ADVERTISE_CLIENT_URLS="http://10.0.0.11:2379"'}
+  - {regexp: "ETCD_LISTEN_CLIENT_URLS",
+     line: 'ETCD_LISTEN_CLIENT_URLS="http://10.0.0.11:2379"'}
+
+- name: Etcd Restaring / Enabling
+  service:
+    name: etcd
+    state: restarted
+    enabled: true
