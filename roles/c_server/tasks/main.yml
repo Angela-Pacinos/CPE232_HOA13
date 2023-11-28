@@ -18,27 +18,28 @@
 
 - name: NTP Starting / Enabling
   service:
-    name: chrony
+    name: chronyd
     state: started
     enabled: yes
 
 # OpenStack packages
-- name: Install subscription manager
-  yum:
-    name: subscription-manager
-    state: present
-
-- name: Enable repositories (openstack)
-  command: "subscription-manager repos --enable=rhel-7-server-optional-rpms --enable=rhel-7-server-extras-rpms --enable=rhel-7-server-rh-common-rpms"
-
-- name: Add RDO repository
-  apt_repository:
-    url: https://rdoproject.org/repos/rdo-release.rpm
-    state: present
-
-- name: Install OpenStack Client
-  yum:
-    name: python-openstackclient
+#- name: Install subscription manager
+#  yum:
+#    name: subscription-manager
+#    state: present
+#
+#- name: Enable repositories (openstack)
+#  command: "subscription-manager repos --enable=rhel-7-server-optional-rpms"
+#  ignore_errors: true
+#
+#- name: Add RDO repository
+#  apt_repository:
+#    url: https://rdoproject.org/repos/rdo-release.rpm
+#    state: present
+#
+#- name: Install OpenStack Client
+#  yum:
+#    name: python-openstackclient
 
 # SQL Database
 - name: Install SQL packages
@@ -46,7 +47,7 @@
     name:
       - mariadb
       - mariadb-server
-      - python2-PyMySQL
+#      - python-PyMySQL
 
 - name: Create file (SQL)
   file:
@@ -71,33 +72,34 @@
 - name: Mariadb Restarting / Enabling
   service:
     name: mariadb.service
-    state: start
+    state: restarted
     enabled: true
 
 # Message Queue
-- name: Install Message Queue package
-  yum:
-    name: rabbitmq-server
-    state: latest
-
-- name: Rabbitmq-server Starting / Enabling
-  service:
-    name: rabbitmq-server
-    state: started
-    enabled: true
-
-- name: Add RabbitMQ user
-  command: rabbitmqctl add_user openstack pacinos_tip
-
-- name: Permit configuration
-  command: rabbitmqctl set_permissions openstack ".*" ".*" ".*"
+#- name: Install Message Queue package
+#  yum:
+#    name: rabbitmq-server
+#    state: present
+#
+#- name: Rabbitmq-server Starting / Enabling
+#  service:
+#    name: rabbitmq-server
+#    state: started
+#    enabled: true
+#
+#- name: Add RabbitMQ user
+#  command: rabbitmqctl add_user openstack pacinos_tip
+#  ignore_errors: yes
+#
+#- name: Permit configuration
+#  command: rabbitmqctl set_permissions openstack ".*" ".*" ".*"
 
 # memcached
 - name: Install memcached packages
   yum:
     name:
       - memcached
-      - python-memcache
+      - python-memcached
     state: latest
 
 - name: Edit file (memcached)
@@ -109,7 +111,7 @@
 - name: memcached Starting / Enabling
   service:
     name: memcached
-    state: start
+    state: started
     enabled: true
 
 # Etcd
@@ -120,7 +122,7 @@
 
 - name: Edit file (Etcd)
   lineinfile:
-    dest: /etc/default/etcd
+    dest: /etc/etcd/etcd.conf
     state: present
     line: "{{ item }}"
   loop:
@@ -136,5 +138,5 @@
 - name: Etcd Starting / Enabling
   service:
     name: etcd
-    state: start
+    state: started
     enabled: true
