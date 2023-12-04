@@ -23,6 +23,23 @@
     enabled: yes
 
 # OpenStack packages
+-  name: Install OpenStack Train package
+   yum:
+     name: centos-release-openstack-train
+     state: present
+
+-  name: Upgrade packages (OS)
+   yum:
+     name: "*"
+     state: latest
+
+-  name: Install OpenStack Client and SE Linux
+   yum:
+     name:
+       -  python-openstackclient
+       -  openstack-selinux
+     state: present
+
 #- name: Install subscription manager
 #  yum:
 #    name: subscription-manager
@@ -33,7 +50,7 @@
 #  ignore_errors: true
 #
 #- name: Add RDO repository
-#  apt_repository:
+#  yum_repository:
 #    url: https://rdoproject.org/repos/rdo-release.rpm
 #    state: present
 #
@@ -47,7 +64,6 @@
     name:
       - mariadb
       - mariadb-server
-#      - python-PyMySQL
 
 - name: Create file (SQL)
   file:
@@ -76,6 +92,17 @@
     enabled: true
 
 # Message Queue
+-  name: Install Message Queue package
+   yum:
+     name: rabbitmq-server
+     state: present
+
+-  name: Message Queue Restarting / Enabling
+   systemd:
+     name: rabbitmq-server.service
+     state: restarted
+     enabled: true
+
 #- name: Install Message Queue package
 #  yum:
 #    name: rabbitmq-server
